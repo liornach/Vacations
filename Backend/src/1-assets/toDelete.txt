@@ -1,0 +1,25 @@
+-Moshe.cohen@gmail.com
+-BigMoshe1234
+
+{
+    "email" : "roi54@walla.com",
+    "userPassword" : "roi12345"
+}
+
+    "email" : "manmani@yahoo.com",
+    "userPassword" : "mimani7218"
+
+    "email" : "rogRog@gmail.com",
+    "userPassword" : "rogerWWW!24"
+
+    "email" : "LeahLili@zahav.com",
+    "userPassword" : "lolLili&^"
+
+    "email" : "shimi@walla.com",
+    "userPassword" : "benElStatic98%$"
+
+    "email" : "myMadi@gmail.com",
+    "userPassword" : "queenAreTheBest"
+
+    "email" : "kelkel123@gmail.com",
+    "userPassword" : "myNameIsKelly"
