@@ -30,10 +30,10 @@ class VacationsService {
     }
 
     // Get one vacation (redux only)
-    public async getOneVacation(vacationId : number) : Promise<VacationData> {
+    public async getOneVacation(vacationId : number , userId: number) :Promise<VacationData>{
 
-        // Get vacations from store:
-        let vacations = vacationsStore.getState().vacations;
+        // Get all vacations:
+        const vacations = await this.getVacations(userId);
 
         // Find specific vacations:
         let vacation = vacations.find(v => v.vacationId === vacationId);
@@ -79,44 +79,38 @@ class VacationsService {
         vacationsStore.dispatch({type:VacationActionType.DeleteVacation , payload:vacationId});
     }
 
-    
+    // follow:
+    public async followVacation(vacationId : number , userId : number) : Promise<void> {
 
-    public async toggleFollow(vacationId:number , userId : number) : Promise<void> {
+        // Send follow request to server:
+        await axios.post(appConfig.followUrl + vacationId + "/" + userId);
+        
+        // Get vacation from global state:
+        let vacation = await this.getOneVacation(vacationId , userId);
 
-        // TODO: send request to server
-        //.....
-
-
-        // Get the right vacation:
-        let vacation = await this.getOneVacation(vacationId);
-
-        // if the user isn't already following (execute follow):
-        if(vacation.isFollowing === 0){
-            // Send request to server
-            //....
-
-            // Change vacations followers values:
-            vacation = {...vacation , followersCount : vacation.followersCount + 1, isFollowing : 1};
-        }
-
-        // If the user is already following (execute unfollow):
-        else if (vacation.isFollowing === 1){
-            // Send request to server
-            //....
-            
-            // Change vacations followers values:
-            vacation = {...vacation , followersCount : vacation.followersCount -1 ,isFollowing : 0}
-        }
+        // Change vacation followers values:
+        vacation = {...vacation , followersCount : vacation.followersCount + 1, isFollowing : 1};
 
         // Update vacation store:
-        vacationsStore.dispatch({type:VacationActionType.UpdateVacation , payload : vacation});
-
-
+        vacationsStore.dispatch({type:VacationActionType.UpdateVacation, payload: vacation});
     }
 
+    // Unfollow : 
+    public async unfollowVacation(vacationId: number , userId: number) : Promise<void>{
 
+        // Send unfollow request to server:
+        await axios.delete(appConfig.unFollowUrl + vacationId + "/" + userId);
 
-}
+        // Get vacation from global state:
+        let vacation = await this.getOneVacation(vacationId , userId);
+
+        // Change vacation followers value:
+        vacation = {...vacation , followersCount : vacation.followersCount -1 ,isFollowing : 0};
+
+        // Update vacation store:
+        vacationsStore.dispatch({type:VacationActionType.UpdateVacation , payload: vacation});
+    }
+};
 
 const vacationsService = new VacationsService();
 

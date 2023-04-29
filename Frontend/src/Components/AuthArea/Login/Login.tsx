@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CredentialsModel from "../../../Models/CredentialsModel";
 import notifyService from "../../../Services/NotifyService";
 import authService from "../../../Services/AuthService";
+import { NavLink } from "react-router-dom";
 
 function Login(): JSX.Element {
 
@@ -33,6 +34,9 @@ function Login(): JSX.Element {
                 <input type="password" minLength={4} maxLength={40} required {...register("userPassword")} />
 
                 <button>Login</button>
+
+                <br />
+                <p>Don't have an account yet? <NavLink to="/register">Register</NavLink></p>
 
             </form>
 

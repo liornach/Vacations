@@ -2,8 +2,7 @@ import {VacationData, VacationModel} from "../2-models/vacation-model"
 import dal from "../4-utils/dal"
 import { OkPacket } from "mysql"
 import imageHandler from "../4-utils/image-handler";
-import { ResourceNotFoundError } from "../2-models/client-errors";
-
+import { ResourceNotFoundError, ValidationError } from "../2-models/client-errors";
 
 async function getVacations(userId : number): Promise<VacationData[]>{
     // Maybe I would have to add the DISTINCT statement
@@ -23,15 +22,36 @@ async function getVacations(userId : number): Promise<VacationData[]>{
     return vacations;
 }
 
+async function getOneVacation(vacationId : number) : Promise<VacationModel> {
+
+    // Sql
+    const sql = `
+    Select * from vacations where vacationId = ?
+    `
+    // Execute:
+    const vacation : VacationModel = await dal.execute(sql , [vacationId]);
+
+    // Return:
+    return vacation;
+}
 
 async function follow(vacationId : number , userId : number) : Promise<void> {
+
+    // Sql for checking that user is not already following:
+    const checkSql = `SELECT * FROM followers WHERE userId = ? AND vacationId = ?`;
+
+    // Execute check:
+    const checkResult = await dal.execute(checkSql , [userId , vacationId]);
+    
+    // If user is already following
+    if(checkResult.length > 0 ) throw new ValidationError("You are already following");
 
     // sql:
     const sql = `INSERT INTO followers (userId ,  vacationId)
                 VALUES (? , ?)`;
 
     // Execute:
-    await dal.execute(sql , [userId , vacationId]);
+    const result : OkPacket = await dal.execute(sql , [userId , vacationId]);
 
     // Return:
     return;
@@ -43,7 +63,10 @@ async function unfollow(vacationId :number , userId:number){
     const sql = `DELETE FROM followers WHERE userId = ? AND vacationId = ?`
 
     // Execute:
-    await dal.execute(sql , [userId , vacationId]);
+    const result : OkPacket = await dal.execute(sql , [userId , vacationId]);
+
+    // If now matching was found:
+    if(result.affectedRows === 0) throw new ValidationError("You are already not following");
 
     // Return:
     return;
@@ -181,5 +204,6 @@ export default {
     updateVacation,
     deleteVacation,
     follow,
-    unfollow
+    unfollow,
+    getOneVacation
 }

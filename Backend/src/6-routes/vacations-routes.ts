@@ -28,16 +28,61 @@ router.get("/vacations/:userId([0-9]+)" ,[verifyLoggedIn , verifyId], async (req
     }
 });
 
-
-// POST http://localhost:4000/api/vacations/followers/:vacationId/:userId
-router.post("/vacations/followers/:vacationId([0-9]+)/:userId([0-9]+)" ,[verifyLoggedIn , verifyId] , async (request : Request , response : Response , next : NextFunction)=>{
+// GET http://localhost:4000/api/single-vacation/:vacationId
+router.get("/single-vacation/:vacationId([0-9]+)" ,[verifyAdmin], async (request : Request , response : Response , next : NextFunction)=>{
     try{
-        // Extract params:
+        // Extract vacation id from parameters:
+        const vacationId = +request.params.vacationId;
         
+        // Call service:
+        const vacation : VacationModel = await vacationService.getOneVacation(vacationId);
+
+        // Response:
+        response.json(vacation);
+
     }
     catch(err:any){
         next(err);
     }
+});
+
+// Route for user's "follow":
+// POST http://localhost:4000/api/vacations/followers/:vacationId/:userId
+router.post("/vacations/follow/:vacationId([0-9]+)/:userId([0-9]+)" ,[verifyLoggedIn , verifyId] , async (request : Request , response : Response , next : NextFunction)=>{
+    try{
+        // Extract params:
+        const vacationId = +request.params.vacationId;
+        const userId = +request.params.userId;
+
+        // Call service to add the user as follower:
+        await vacationService.follow(vacationId, userId);
+
+        // Response:
+        response.sendStatus(201);
+    }
+    catch(err:any){
+        next(err);
+    }
+});
+
+// Route for user's "unfollow":
+// DELETE http://localhost:4000/unfollow/:vacationId/:userId
+router.delete("/vacations/unfollow/:vacationId([0-9]+)/:userId([0-9]+)" ,[verifyLoggedIn , verifyId] , async (request: Request , response : Response , next : NextFunction)=>{
+    try{
+        // Extract params:
+        const vacationId = +request.params.vacationId;
+        const userId = +request.params.userId;
+
+        // Call service to remove the user as follower:
+        await vacationService.unfollow(vacationId, userId);
+
+        // Response:
+        response.sendStatus(204);
+    }
+    catch(err: any){
+        next(err);
+    }
+
 });
 
 // POST http://localhost:4000/api/vacations

@@ -1,6 +1,13 @@
 -Moshe.cohen@gmail.com
 -BigMoshe1234
 
+I still need to check the "on going" filter on the vacations page. (Probably after i'll be able to add new vacation).
+I still need to add Pagination methods (only 9 vacations per page);
+I still need to run some weird test which described in the end of the project assignment page
+maybe i should check the option of creating web socket for real time data update
+
+
+- create delete option (and maybe create card model for static function); 
 {
     "email" : "roi54@walla.com",
     "userPassword" : "roi12345"
@@ -23,3 +30,23 @@
 
     "email" : "kelkel123@gmail.com",
     "userPassword" : "myNameIsKelly"
+
+
+
+    
+
+    const [vacations, setVacations] = useState<VacationModel[]>([]);
+
+useEffect(()=>{
+
+  vacationsService.getAllVacations(vacations => setVacatinos(vacations));
+
+  const unsubscribe = vacationsStore.subscribe(()=>{
+    const duplicatedVacations = [...vacationsStore.getState().vacations];
+    setVacatinos(duplicatedVacations);
+  });
+
+}, []);
+
+stuff to do at the end:
+add the helmet for security , and also that thing that prevent dos attacks. 

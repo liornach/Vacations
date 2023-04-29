@@ -7,13 +7,14 @@ export class AuthState {
 
     public token: string;
     public user: UserModel;
+    public logoutTimeoutId: NodeJS.Timeout;
 
     public constructor() {
         this.token = localStorage.getItem('token');
         if(this.token) {
             this.user = jwtDecode<{user : UserModel}>(this.token).user;
         }
-    }
+    }   
 }
 
 // Action types
@@ -44,7 +45,6 @@ export function authReducer(currentState = new AuthState() , action : AuthAction
         newState.user = jwtDecode<{user : UserModel}>(action.payload).user;
         localStorage.setItem("token" , newState.token)
         break;
-
         case AuthActionType.Logout: // We don't have any payload:
         newState.token = null;
         newState.user = null;

@@ -62,3 +62,4 @@ export interface VacationData extends VacationModel{
     followersCount:number;
 }
 
+

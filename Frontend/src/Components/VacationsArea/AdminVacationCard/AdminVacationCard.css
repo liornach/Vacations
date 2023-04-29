@@ -1,0 +1,11 @@
+.AdminVacationCard > img {
+	width: 50%;
+}
+
+.AdminVacationCard {
+    border: 1px solid black;
+    width: 25%;
+    margin: 100px 25px 25px 25px;
+}
+
+

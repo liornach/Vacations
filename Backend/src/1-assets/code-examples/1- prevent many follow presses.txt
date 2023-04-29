@@ -1,44 +1,76 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useState, useEffect } from 'react';
-import { FOLLOW, UNFOLLOW } from './store';
-import { sendFollowActions } from './api';
+import jwtDecode from 'jwt-decode';
+import { createStore } from 'redux';
+import UserModel from '../Models/UserModel';
 
-const FollowButton = ({ postId }) => {
-  const numFollowers = useSelector(state => state.numFollowers);
-  const isFollowing = useSelector(state => state.isFollowing);
-  const dispatch = useDispatch();
-  const [localFollows, setLocalFollows] = useState([]);
-  const [timeoutId, setTimeoutId] = useState(null);
+export class AuthState {
+  public token: string;
+  public user: UserModel;
+  public logoutTimeoutId: NodeJS.Timeout;
 
-  const handleClick = () => {
-    if (isFollowing) {
-      dispatch({ type: UNFOLLOW });
-      setLocalFollows(localFollows.filter(id => id !== postId));
-    } else {
-      dispatch({ type: FOLLOW });
-      setLocalFollows([...localFollows, postId]);
+  public constructor() {
+    this.token = localStorage.getItem('token');
+    if (this.token) {
+      this.user = jwtDecode<{ user: UserModel }>(this.token).user;
+      this.startLogoutTimer();
     }
+  }
 
-    if (timeoutId) clearTimeout(timeoutId);
+  public startLogoutTimer(): void {
+    const TWELVE_HOURS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+    this.logoutTimeoutId = setTimeout(() => {
+      authStore.dispatch({ type: AuthActionType.Logout });
+    }, TWELVE_HOURS);
+  }
 
-    setTimeoutId(setTimeout(() => {
-      sendFollowActions(localFollows);
-      setLocalFollows([]);
-    }, 5000));
-  };
+  public clearLogoutTimer(): void {
+    if (this.logoutTimeoutId) {
+      clearTimeout(this.logoutTimeoutId);
+      this.logoutTimeoutId = null;
+    }
+  }
+}
 
-  useEffect(() => {
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [timeoutId]);
+// Action types
+export enum AuthActionType {
+  Register,
+  Login,
+  Logout,
+}
 
-  return (
-    <div>
-      <button onClick={handleClick}>
-        {isFollowing ? 'Unfollow' : 'Follow'}
-      </button>
-      <span>{numFollowers} Followers</span>
-    </div>
-  );
-};
+// Action interface
+export interface AuthAction {
+  type: AuthActionType;
+  payload?: string;
+}
+
+// Redux Reducer:
+
+export function authReducer(
+  currentState = new AuthState(),
+  action: AuthAction
+): AuthState {
+  // Create a new state:
+  const newState = { ...currentState };
+
+  // Perform the needed action:
+  switch (action.type) {
+    case AuthActionType.Register: // Payload = token
+    case AuthActionType.Login: // Payload = token
+      newState.token = action.payload;
+      newState.user = jwtDecode<{ user: UserModel }>(action.payload).user;
+      localStorage.setItem('token', newState.token);
+      newState.clearLogoutTimer();
+      newState.startLogoutTimer();
+      break;
+    case AuthActionType.Logout: // We don't have any payload:
+      newState.token = null;
+      newState.user = null;
+      localStorage.removeItem('token');
+      newState.clearLogoutTimer();
+      break;
+  }
+
+  return newState;
+}
+
+export const authStore = createStore(authReducer);
