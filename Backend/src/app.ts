@@ -6,6 +6,7 @@ import routeNotFound from "./3-middleware/router-not-found";
 import catchAll from "./3-middleware/catch-all";
 import appConfig from "./4-utils/app-config";
 import authRoute from "./6-routes/auth-routes";
+import path from "path";
 
 const server = express();
 
@@ -21,6 +22,16 @@ server.use(expressFileUpload());
 // Route requests:
 server.use("/api" , vacationsRoutes);
 server.use("/api", authRoute)
+
+
+
+// Serve static assets
+server.use(express.static(path.join(__dirname, "../../Frontend/public")));
+
+// Handle SPA fallback for any route
+server.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../Frontend/public", "index.html"));
+});
 
 // Route not found:
 server.use(routeNotFound);

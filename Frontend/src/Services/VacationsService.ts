@@ -44,11 +44,23 @@ class VacationsService {
     }
 
     public async addVacation(vacation : VacationModel) : Promise<void>{
-        // Create header for sending image:
-        const headers = {"Content-Type": "multipart/form-data"};
+
+        this.postDatesValidation(vacation.startDate , vacation.endDate);
+
+        const formData = new FormData();
+
+        // Append the vacation date to the form data:
+        formData.append("destination" , vacation.destination);
+        formData.append("description" , vacation.description);
+        formData.append("startDate" , vacation.startDate);
+        formData.append("endDate" , vacation.endDate);
+        formData.append("price" , vacation.price.toString());
+
+        // Append the image file to the form data:
+        if (vacation.image) formData.append("image" , vacation.image);
 
         // Send vacation to server:
-        const response = await axios.post<VacationModel>(appConfig.vacationsUrl , vacation , {headers});
+        const response = await axios.post<VacationModel>(appConfig.vacationsUrl , formData);
 
         // Get the added vacation:
         const addedVacation = response.data;
@@ -58,6 +70,9 @@ class VacationsService {
     }
 
     public async editVacation(vacation : VacationModel) : Promise<void> {
+
+        this.putDatesValidation(vacation.startDate , vacation.endDate);
+
         // Create header for handling image:
         const headers = {"content-type": "multipart/form-data"};
 
@@ -110,6 +125,26 @@ class VacationsService {
         // Update vacation store:
         vacationsStore.dispatch({type:VacationActionType.UpdateVacation , payload: vacation});
     }
+
+        // Validation for dates:
+        private postDatesValidation(start : string , end : string) : void{
+
+            // If start date has already passed:
+            const now = new Date();
+            const startDate = new Date(start)
+            if(startDate < now) throw new Error("Start date has already been passed!");
+    
+            // To validate further , go tto putDatesValidation:
+            this.putDatesValidation(start , end);
+        }
+
+        private putDatesValidation(start : string , end : string){
+
+            const startDate = new Date(start)
+            const endDate = new Date(end);
+            if (endDate < startDate) throw new Error("End date cannot be before start date!");
+        }
+    
 };
 
 const vacationsService = new VacationsService();

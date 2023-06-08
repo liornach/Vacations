@@ -18,8 +18,10 @@ const navigate = useNavigate();
 // Vacations use state:
 const [vacations, setVacations] = useState<VacationData[]>([]);
 
-const userId : number = authStore.getState().user.userId;
+// Sorted vacations state:
+const [sortedVacations, setSortedVacations] = useState<VacationData[]>([]);
 
+const userId : number = authStore.getState().user.userId;
 
 // Logout
 function logout(): void {
@@ -28,12 +30,21 @@ function logout(): void {
     navigate("/login");
 }
 
+useEffect(() => {
+    // Sort the vacations based on start dates
+    const sorted = vacations.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+  
+    // Set the sorted vacations in state
+    setSortedVacations(sorted);
+
+    // Ensure that the page is scrolled up to the top:
+    window.scrollTo(0, 0);
+
+  }, [vacations]);
+
+
 // When page is first loading
 useEffect(()=>{
-
-    // Get user state:
-    const authState : AuthState = authStore.getState();
-
     // If user is not connected:
     if(!userId){
         notifyService.error("You must be logged in");
@@ -46,7 +57,6 @@ useEffect(()=>{
     .then(vacations => {
     setVacations(vacations);
     
-    //!!!!! later I'll check if these lines are really necessary
     const unsubscribe = vacationsStore.subscribe(()=>{
     const duplicatedVacations = [...vacationsStore.getState().vacations];
     setVacations(duplicatedVacations);
@@ -74,7 +84,7 @@ useEffect(()=>{
     return (
         <div className="Vacations">    
 
-            <span className="Logout"><button onClick={logout}>Logout</button></span>
+            {/* <span className="Logout"><button onClick={logout}>Logout</button></span> */}
 
             <div className="Container">
             {vacations.map(v => <AdminVacationCard key={v.vacationId} vacation={v} userId={userId}/>)}

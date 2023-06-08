@@ -1,3 +1,18 @@
-.Layout {
-	
+.Content {
+    overflow-y: scroll;
+    background: inherit;
+    height: 100%;
 }
+
+.Layout {
+    height: 100vh;
+  }
+  
+  .Menu {
+    grid-area: menu;
+  }
+  
+  .Routing {
+    grid-area: routing;
+  }
+  

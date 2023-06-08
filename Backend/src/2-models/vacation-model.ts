@@ -46,12 +46,32 @@ export class VacationModel {
         image : Joi.any().optional()
     })
 
+    // Validation for dates:
+    private static postDatesValidation(start : string , end : string) : void{
+
+        // If start date has already passed:
+        const now = new Date();
+        const startDate = new Date(start)
+        if(startDate < now) throw new ValidationError("Start date has already been passed!");
+
+        this.putDatesValidation(start, end);
+    }
+
+    private static putDatesValidation(start : string , end : string){
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        if (endDate < startDate) throw new ValidationError("End date cannot be before start date!");
+
+    }
+
     public validatePost() : void {
+        VacationModel.postDatesValidation(this.startDate , this.endDate);
         const result = VacationModel.postValidationSchema.validate(this);
         if (result.error) throw new ValidationError(result.error.message);
     }
 
     public validatePut() : void {
+        VacationModel.putDatesValidation(this.startDate , this.endDate);
         const result = VacationModel.putValidationSchema.validate(this);
         if (result.error) throw new ValidationError(result.error.message);        
     }

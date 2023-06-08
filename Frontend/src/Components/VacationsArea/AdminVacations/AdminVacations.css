@@ -7,8 +7,9 @@
 }
 
 .Logout{
-    position: absolute;
-    right: 0;
+    position: relative;
+    right:0;
+    left: 30%;
     top: 0;
     padding: 10px;
 }

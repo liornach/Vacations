@@ -6,9 +6,9 @@
     justify-content: center;
 }
 
-.Logout{
-    position: absolute;
-    right: 0;
+.UserLogout{
+    position: relative;
     top: 0;
+    left: 0px;
     padding: 10px;
 }

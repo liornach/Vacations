@@ -14,15 +14,41 @@ function Vacations(): JSX.Element {
 
 // Use navigate:
 const navigate = useNavigate();
-
-// Vacations use state:
+// Use states:
 const [vacations, setVacations] = useState<VacationData[]>([]);
-
-// Filters use state:
 const [filterOption, setFilterOption] = useState<string>("all");
-
-// Get user id from auth store:
+const [sortedVacations, setSortedVacations] = useState<VacationData[]>([]);
+const [currentPage, setCurrentPage] = useState<number>(1);
+const [vacationsPerPage] = useState<number>(9);
+// Variables
 const userId : number = authStore.getState().user.userId;
+const indexOfLastVacation = currentPage * vacationsPerPage;
+const indexOfFirstVacation = indexOfLastVacation - vacationsPerPage;
+const currentVacations = sortedVacations.slice(indexOfFirstVacation, indexOfLastVacation);
+const userFirstName = authStore.getState().user.firstName;
+
+const totalPages = Math.ceil(sortedVacations.length / vacationsPerPage);
+
+const handlePageChange = (pageNumber: number) => {
+  setCurrentPage(pageNumber);
+};
+
+const renderPaginationButtons = () => {
+  const buttons = [];
+  for (let i = 1; i <= totalPages; i++) {
+    buttons.push(
+      <button
+        key={i}
+        className={currentPage === i ? "active" : ""}
+        onClick={() => handlePageChange(i)}
+      >
+        {i}
+      </button>
+    );
+  }
+  return buttons;
+};
+
 
 // Logout
 function logout(): void {
@@ -43,93 +69,110 @@ const filteredVacations = useMemo(()=>{
         // all vacations
         case "all":
             return vacations;
-
         // Only followed vacations:
         case "followedOnly":
-            return vacations.filter((v)=> v.isFollowing === 1);
-        
+            return vacations.filter((v)=> v.isFollowing === 1);       
         // Only upcoming vacations:
         case "upComingOnly":
             return vacations.filter((v)=> new Date(v.startDate) > new Date());
-
         // Only ongoing vacations:
         case "onGoingOnly":
             return vacations.filter((v)=> new Date(v.startDate) <= new Date() && new Date(v.endDate) >= new Date());
     }
-
 } , [vacations , filterOption])
 
+// Function to sort vacations by start date:
+useEffect(() => {
+    // Sort the vacations based on start dates
+    const sorted = filteredVacations.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    // Set the sorted vacations in state
+    setSortedVacations(sorted);
+  }, [filteredVacations]);
+
+useEffect(()=>{
+        // Ensure that the page is scrolled up to the top:
+        window.scrollTo(0, 0);
+} , [currentPage]);
+
+useEffect(() => {
+    const totalPages = Math.ceil(sortedVacations.length / vacationsPerPage);
+  
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (currentPage === 0 && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [sortedVacations, currentPage, vacationsPerPage]);
 
 // When page is first loading
 useEffect(()=>{
-
-    // Get user state:
-    const authState : AuthState = authStore.getState();
-
     // If user is not connected:
     if(!userId){
         notifyService.error("You must be logged in");
         navigate("/login");
         return;
     }
-
-    // Call service and send back user id:
+    // Call service and send user id:
     vacationsService.getVacations(userId)
     .then(vacations => {
     setVacations(vacations);
-    
+    // Redux subscribe/unsubscribe:
     const unsubscribe = vacationsStore.subscribe(()=>{
     const duplicatedVacations = [...vacationsStore.getState().vacations];
     setVacations(duplicatedVacations);
     });
-
+    // When component is destroyed:
     return () => unsubscribe();
 })
 .catch(err => {
     if(err.response!.status === 401){
+        // Logout the use to clean token if there is token , but don't notify him
         authService.logout();
-        notifyService.error("You must be logged in");
         navigate('/login');
-    }
-    else{
+    } else {
         notifyService.error(err)
     }
 });
-}, []);
+},[]);
 
     return (
         <div className="Vacations">
             <div>
 
-            <span className="Logout"><button onClick={logout}>Logout</button></span>
-
+            <span>Hello {userFirstName}!</span>
+            <hr />
             <label>Filters: | </label>
             <label>
                 All
                 <input type="radio" name="options" value={"all"} onChange={handleFilters}
                 defaultChecked
                 />
-            </label>
-            <span> | </span>
+            </label><span> | </span>
+
             <label>
                 Followed
                 <input type="radio" name="options" value={"followedOnly"} onChange={handleFilters}/>
-            </label>
-            <span> | </span>
+            </label><span> | </span>
+
             <label>
                 Up Comings
                 <input type="radio" name="options" value={"upComingOnly"} onChange={handleFilters}/>
-            </label>
-            <span> | </span>
+            </label><span> | </span>
+
             <label>
                 On Goings
                 <input type="radio" name="options" value={"onGoingOnly"} onChange={handleFilters}/>
             </label>
             </div>
+
+            <span className="UserLogout"><button onClick={logout}>Logout</button></span>
+
     
             <div className="Container">
-            {filteredVacations.map(v => <VacationCard key={v.vacationId} vacation={v} userId={userId}/>)}
+            {currentVacations.map(v => <VacationCard key={v.vacationId} vacation={v} userId={userId}/>)}
             </div>
+
+            <div className="pagination">{renderPaginationButtons()}</div>
         </div>
     );
 }

@@ -4,6 +4,9 @@ import "./AdminVacationCard.css";
 import { format } from "date-fns";
 import appConfig from "../../../Utils/AppConfig";
 import { useNavigate } from "react-router-dom";
+import  vacationService from "../../../Services/VacationsService";
+import confirmationService from "../../../Services/ConfirmationService";
+import notifyService from "../../../Services/NotifyService";
 
 interface CardProps {
     vacation : VacationData,
@@ -18,9 +21,23 @@ function AdminVacationCard({vacation , userId} : CardProps): JSX.Element {
 
     const navigate = useNavigate();
 
-    const handleEditClick = (): void => {
+    const handleEdit = (): void => {
         navigate("/vacations/edit/" + vacationId);
     };
+
+    // Still need to add design
+    const handleDelete = (): void => {
+        confirmationService.showConfirmation('Are you sure you want to delete?', () => {
+            // Perform the delete operation
+            deleteVacation();
+          });
+    };
+
+    const deleteVacation = (): void => {
+        vacationService.deleteVacation(vacationId)
+        .then(()=>notifyService.success("Vacation deleted successfully"))
+        .catch(err=>notifyService.error(err));
+    }
 
     const toggleDescription = (): void => {
         setShowFullDescription(!showFullDescription);
@@ -35,7 +52,6 @@ function AdminVacationCard({vacation , userId} : CardProps): JSX.Element {
         return `${words.slice(0, 50).join(' ')}...`;
     };
 
-////// !!!!! need to check in this page if the navigate is fine
     const getDescriptionFull = (): string => {
         return description;
     };
@@ -45,12 +61,15 @@ function AdminVacationCard({vacation , userId} : CardProps): JSX.Element {
         <div className="AdminVacationCard">
 
             <div>
-			<button onClick={handleEditClick}>Edit</button>
-            <button>Delete</button>
+			<button onClick={handleEdit}>Edit</button>
+            <button onClick={handleDelete}>Delete</button>
             </div>
 
             <p>{destination}</p>
-            <img src={appConfig.vacationsImagesUrl + imageName} alt={destination} />
+
+            {/* Conditional rendering for images */} 
+            {imageName ? <img src={appConfig.vacationsImagesUrl + imageName} alt={destination} /> : null}
+
             <p>{format(new Date(startDate), 'd.M.yyyy')} - {format(new Date(endDate), 'd.M.yyyy')}</p>
             <p>{showFullDescription ? getDescriptionFull() : getDescriptionPreview()}</p>
             {description.length > 50 && (

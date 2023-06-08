@@ -83,14 +83,13 @@ async function addVacation(vacation : VacationModel) : Promise<VacationModel> {
 
     // If we have an image:
     if (vacation.image) {
-
         // Save image::
         imageName = await imageHandler.saveImage(vacation.image);
 
         // Set image name
         vacation.imageName = imageName;
     }
-
+    
     // Create query:
     const sql =`
     INSERT INTO vacations(destination , description , startDate , endDate , price , imageName)

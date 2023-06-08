@@ -6,6 +6,23 @@ import CredentialsModel from "../Models/CredentialsModel";
 
 class AuthService {
 
+    public async isAdmin(): Promise<boolean> {
+
+        // Get user state:
+        const role = authStore.getState().user.role;
+
+        if(role === 1) return true;
+        return false;
+    }
+
+    public async isLoggedIn() : Promise<boolean> {
+        // Get user state:
+        const state = authStore.getState().user?.role;
+
+        if(state) return true;
+        return false;
+    }
+
     public async register(user:UserModel) : Promise<void> {
         
         // Send user to backend for registration:

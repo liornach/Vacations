@@ -19,9 +19,8 @@ function VacationCard({vacation , userId}: CardProps) : JSX.Element {
     // Handling follow requests:
     const handleFollow = async (): Promise<void> => {
 
-        // If user us already following - execute unfollow
+        // If user is already following - execute unfollow
         if (isFollowed) {
-
             // Call service to unfollow vacation:
             vacationsService.unfollowVacation(vacationId , userId)
             .then(()=>setIsFollowed(false))
@@ -60,7 +59,10 @@ function VacationCard({vacation , userId}: CardProps) : JSX.Element {
                 {isFollowed ? 'Unfollow' : 'Follow'} | {vacation.followersCount}
             </button>
             <p>{destination}</p>
-            <img src={appConfig.vacationsImagesUrl + imageName} alt={destination} />
+
+            {/*Conditional rendering for images */}
+            {imageName ? <img src={appConfig.vacationsImagesUrl + imageName} alt={destination} /> : null}
+
             <p>{format(new Date(startDate), 'd.M.yyyy')} - {format(new Date(endDate), 'd.M.yyyy')}</p>
             <p>{showFullDescription ? getDescriptionFull() : getDescriptionPreview()}</p>
             {description.length > 50 && (
